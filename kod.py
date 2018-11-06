@@ -90,6 +90,17 @@ def dfs(board):
             return
         frontier.extend(newStates)
 
+def bfs(board):
+
+    frontier = deque()
+    frontier.extend(generateMoves(board))
+    while True:
+        state = frontier.popleft()
+        newStates = generateMoves(state)
+        if len(newStates) == 0:
+            printBoard(state)
+            return
+        frontier.extend(newStates)
 
 def printBoard(board):
 
@@ -101,7 +112,7 @@ def printBoard(board):
 def main():
     board = [['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], *[[1 for i in range(7)] for _ in range(3)], ['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], ]
     board[3][3] = 0
-    dfs(board)
+    bfs(board)
 
 
 if __name__ == '__main__':

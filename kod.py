@@ -2,6 +2,7 @@
 from copy import deepcopy as copy
 from collections import deque
 import sys
+import heapq
 
 
 def sideeffect(f):
@@ -69,7 +70,7 @@ def generateMoves(board):
     for x in range(7):
         for y in range(7):
             movesForPiece = [move(board, (x, y), direction) for direction in [
-                'U', 'D', 'R', 'L'] if isValidMove(board, (x, y), direction)]
+                'R', 'U', 'L', 'D'] if isValidMove(board, (x, y), direction)]
             pieceMoves.extend(copy(movesForPiece))
     return pieceMoves
 
@@ -82,28 +83,67 @@ def checkGoal(board):
 
 def dfs(board):
     frontier = [*generateMoves(board)]
+    cnt = 0
     while True:
         state = frontier.pop()
         newStates = generateMoves(state)
+        cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
+            print(cnt)
             return
         frontier.extend(newStates)
+
 
 def bfs(board):
 
     frontier = deque()
+    cnt = 0
+
     frontier.extend(generateMoves(board))
     while True:
         state = frontier.popleft()
         newStates = generateMoves(state)
+        cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
+            print(cnt)
             return
         frontier.extend(newStates)
 
-def printBoard(board):
 
+def astar(board, heuristic=None):
+    frontier = []
+    [heapq.heappush(frontier, (0 + heuristic(board), m)) for m in generateMoves(board)]
+    cnt = 0
+    i = 1
+    while True:
+        val, state = heapq.heappop(frontier)
+        newStates = generateMoves(state)
+        cnt += len(newStates)
+        if len(newStates) == 0:
+            printBoard(state)
+            print(cnt, i)
+            return
+        [heapq.heappush(frontier, (heuristic(m)+i, m)) for m in newStates]
+        i += 1
+
+
+@sideeffect
+def heuristic_1(board):
+    res = 0
+    q = 0
+    for x in range(7):
+        for y in range(7):
+            for direction in ['U', 'D', 'R', 'L']:
+                if isValidMove(board, (x, y), direction):
+                    res += 1
+                    break
+    return res
+
+
+
+def printBoard(board):
     for q in board:
         print(' '.join(map(str, q)), sep='\n', end='\n')
     print('-------------')
@@ -112,7 +152,7 @@ def printBoard(board):
 def main():
     board = [['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], *[[1 for i in range(7)] for _ in range(3)], ['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], ]
     board[3][3] = 0
-    bfs(board)
+    dfs(board)
 
 
 if __name__ == '__main__':

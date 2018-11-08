@@ -70,7 +70,7 @@ def generateMoves(board):
     for x in range(7):
         for y in range(7):
             movesForPiece = [move(board, (x, y), direction) for direction in [
-                'R', 'U', 'L', 'D'] if isValidMove(board, (x, y), direction)]
+                'R', 'L', 'U', 'D'] if isValidMove(board, (x, y), direction)]
             pieceMoves.extend(copy(movesForPiece))
     return pieceMoves
 
@@ -84,55 +84,72 @@ def checkGoal(board):
 def dfs(board):
     frontier = [*generateMoves(board)]
     cnt = 0
+    max_kept = 0
+    i = 1
+
     while True:
         state = frontier.pop()
         newStates = generateMoves(state)
         cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
-            print(cnt)
+            print('DFS Total nodes expanded: {}, Max frontier size: {}, Total nodes generated: {}'.format(
+                i, max_kept, cnt))
             return
         frontier.extend(newStates)
+        max_kept = max(max_kept, len(frontier))
+        i += 1
 
 
 def bfs(board):
 
     frontier = deque()
     cnt = 0
+    i = 1
 
     frontier.extend(generateMoves(board))
+    max_kept = 0
+
     while True:
         state = frontier.popleft()
         newStates = generateMoves(state)
         cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
-            print(cnt)
+            print('BFS Total nodes expanded: {}, Max frontier size: {}, Total nodes generated: {}'.format(
+                i, max_kept, cnt))
             return
         frontier.extend(newStates)
+        max_kept = max(max_kept, len(frontier))
+        i += 1
 
 
 def astar(board, heuristic=None):
     frontier = []
-    [heapq.heappush(frontier, (0 + heuristic(board), m)) for m in generateMoves(board)]
+    [heapq.heappush(frontier, (1 + heuristic(board), 1, m))
+     for m in generateMoves(board)]
     cnt = 0
     i = 1
+    max_kept = 0
     while True:
-        val, state = heapq.heappop(frontier)
+        val, nowCost, state = heapq.heappop(frontier)
+        # print(val)
         newStates = generateMoves(state)
         cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
-            print(cnt, i)
+            print('A* Total nodes expanded: {}, Max frontier size: {}, Total nodes generated: {}'.format(
+                i, max_kept, cnt))
             return
-        [heapq.heappush(frontier, (heuristic(m)+i, m)) for m in newStates]
+        [heapq.heappush(frontier, (heuristic(m)+nowCost, nowCost+1, m))
+         for m in newStates]
+        max_kept = max(max_kept, len(frontier))
         i += 1
 
 
 @sideeffect
 def heuristic_1(board):
     res = 0
-    q = 0
     for x in range(7):
         for y in range(7):
             for direction in ['U', 'D', 'R', 'L']:
@@ -141,6 +158,18 @@ def heuristic_1(board):
                     break
     return res
 
+
+@sideeffect
+def heuristic_2(board):
+    res = 0
+    for x in range(7):
+        for y in range(7):
+            for direction in ['U', 'D', 'R', 'L']:
+                if isValidMove(board, (x, y), direction):
+                    res += 1
+                    break
+
+    return min(3, res/3)
 
 
 def printBoard(board):
@@ -152,7 +181,8 @@ def printBoard(board):
 def main():
     board = [['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], *[[1 for i in range(7)] for _ in range(3)], ['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], ]
     board[3][3] = 0
-    dfs(board)
+    astar(board, heuristic_2)
+
 
 
 if __name__ == '__main__':

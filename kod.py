@@ -80,6 +80,13 @@ def checkGoal(board):
         return True
     return False
 
+def howManyPiecesLeft(board):
+    left = 0
+    for x in range(7):
+        for y in range(7):
+            if board[x][y] == 1:
+                left += 1
+    return left
 
 def dfs(board):
     frontier = [*generateMoves(board)]
@@ -93,8 +100,8 @@ def dfs(board):
         cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
-            print('DFS Total nodes expanded: {}, Max frontier size: {}, Total nodes generated: {}'.format(
-                i, max_kept, cnt))
+            print('DFS \nTotal nodes expanded: {}, \nMax frontier size: {}, \nTotal nodes generated: {}, Number of pieces left: {}'.format(
+                i, max_kept, cnt, howManyPiecesLeft(state)))
             return
         frontier.extend(newStates)
         max_kept = max(max_kept, len(frontier))
@@ -116,8 +123,8 @@ def bfs(board):
         cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
-            print('BFS Total nodes expanded: {}, Max frontier size: {}, Total nodes generated: {}'.format(
-                i, max_kept, cnt))
+            print('BFS \nTotal nodes expanded: {}, \nMax frontier size: {}, \nTotal nodes generated: {}, Number of pieces left: {}'.format(
+                i, max_kept, cnt, howManyPiecesLeft(state)))
             return
         frontier.extend(newStates)
         max_kept = max(max_kept, len(frontier))
@@ -133,13 +140,12 @@ def astar(board, heuristic=None):
     max_kept = 0
     while True:
         val, nowCost, state = heapq.heappop(frontier)
-        # print(val)
         newStates = generateMoves(state)
         cnt += len(newStates)
         if len(newStates) == 0:
             printBoard(state)
-            print('A* Total nodes expanded: {}, Max frontier size: {}, Total nodes generated: {}'.format(
-                i, max_kept, cnt))
+            print('A* \nTotal nodes expanded: {}, \nMax frontier size: {}, \nTotal nodes generated: {}, Number of pieces left: {}'.format(
+                i, max_kept, cnt, howManyPiecesLeft(state)))
             return
         [heapq.heappush(frontier, (heuristic(m)+nowCost, nowCost+1, m))
          for m in newStates]
@@ -181,7 +187,23 @@ def printBoard(board):
 def main():
     board = [['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], *[[1 for i in range(7)] for _ in range(3)], ['#', '#', 1, 1, 1, '#', '#'], ['#', '#', 1, 1, 1, '#', '#'], ]
     board[3][3] = 0
-    astar(board, heuristic_2)
+    args = sys.argv[1:]
+    if len(args) == 0:
+        raise Exception('provide algorithm with --dfs --bfs --astar')
+    if len(args) == 1 and args[0] == '--astar':
+        raise Exception('provide heuristic with --h1 --h2')
+    if args[0] == '--dfs':
+        dfs(board)
+    if args[0] == '--bfs':
+        bfs(board)
+    if args[0] == '--astar':
+        if args[1] == '--h1':
+            astar(board, heuristic_1)
+        elif args[1] == '--h2':
+            astar(board, heuristic_2)
+        else:
+            raise Exception('Invalid heuristic')
+
 
 
 
